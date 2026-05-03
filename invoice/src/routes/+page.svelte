@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	type CurrencyCode = 'PKR' | 'SAR';
+	type CurrencyCode = 'SAR';
 	type ItemType = 'onetime' | 'monthly';
 
 	type InvoiceItem = {
@@ -17,9 +17,7 @@
 		symbol: string;
 		defaultUsdRate: number;
 		defaultEurRate: number;
-		defaultSarRate: number;
 		priceHint: string;
-		altCurrency: CurrencyCode;
 	};
 
 	type JsPdfDocument = {
@@ -125,38 +123,26 @@ Any disputes arising from this invoice or related services shall fall under the 
 Coded Clouds retains final operational authority over execution methods while adhering to the agreed scope and professional standards.`;
 
 	const currencyConfigs: Record<CurrencyCode, CurrencyConfig> = {
-		PKR: {
-			label: 'Pakistani Rupee',
-			symbol: 'PKR',
-			defaultUsdRate: 280,
-			defaultEurRate: 305,
-			defaultSarRate: 74.5,
-			priceHint: 'PKR',
-			altCurrency: 'SAR'
-		},
 		SAR: {
 			label: 'Saudi Riyal',
 			symbol: 'SAR',
 			defaultUsdRate: 3.75,
 			defaultEurRate: 4.05,
-			defaultSarRate: 74.5,
-			priceHint: 'SAR',
-			altCurrency: 'PKR'
+			priceHint: 'SAR'
 		}
 	};
 
-	let baseCurrency: CurrencyCode = 'PKR';
+	let baseCurrency: CurrencyCode = 'SAR';
 	let invoiceNum = 'CC-085';
 	let invoiceDate = '';
-	let rateUsd = currencyConfigs.PKR.defaultUsdRate;
-	let rateEur = currencyConfigs.PKR.defaultEurRate;
-	let sarPkrRate = currencyConfigs.PKR.defaultSarRate;
+	let rateUsd = currencyConfigs.SAR.defaultUsdRate;
+	let rateEur = currencyConfigs.SAR.defaultEurRate;
 	let importantNotes = `• Ad spend is separate from service fees
 • Taxes apply only when Coded Clouds collects ad budget
 • Performance depends on platform algorithms and market behavior`;
 	let items: InvoiceItem[] = [
-		{ name: 'Web Design & Development', price: 45000, type: 'onetime' },
-		{ name: 'Digital Marketing Retainer', price: 25000, type: 'monthly' }
+		{ name: 'Web Design & Development', price: 450, type: 'onetime' },
+		{ name: 'Digital Marketing Retainer', price: 250, type: 'monthly' }
 	];
 	let previewUrl = '';
 	let scriptsReady = false;
@@ -200,22 +186,8 @@ Coded Clouds retains final operational authority over execution methods while ad
 		return currencyConfigs[baseCurrency];
 	}
 
-	function getAlternateCurrencyValue(amount: number) {
-		if (!sarPkrRate) return 0;
-		return baseCurrency === 'PKR' ? amount / sarPkrRate : amount * sarPkrRate;
-	}
-
 	function formatMoney(amount: number, currency: CurrencyCode | 'USD' | 'EUR') {
 		return `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-	}
-
-	function updateCurrencyDefaults(nextCurrency: CurrencyCode) {
-		const config = currencyConfigs[nextCurrency];
-		baseCurrency = nextCurrency;
-		rateUsd = config.defaultUsdRate;
-		rateEur = config.defaultEurRate;
-		sarPkrRate = config.defaultSarRate;
-		schedulePreview();
 	}
 
 	function updateItem(index: number, field: keyof InvoiceItem, value: string) {
@@ -243,12 +215,9 @@ Coded Clouds retains final operational authority over execution methods while ad
 		if (!JsPDF) return '';
 
 		const doc = new JsPDF();
-		const activeCurrency = getActiveCurrency();
 		const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
 		const toUsd = (value: number) => (rateUsd ? value / rateUsd : 0);
 		const toEur = (value: number) => (rateEur ? value / rateEur : 0);
-		const toAlt = (value: number) => getAlternateCurrencyValue(value);
-		const altCurrency = activeCurrency.altCurrency;
 
 		doc.setFontSize(24);
 		doc.setTextColor(26, 86, 219);
@@ -280,7 +249,7 @@ Coded Clouds retains final operational authority over execution methods while ad
 
 			const tableData = filtered.map((item) => [
 				item.name,
-				`${formatMoney(item.price, baseCurrency)}\n($${toUsd(item.price).toFixed(2)}) (€${toEur(item.price).toFixed(2)})\n(${formatMoney(toAlt(item.price), altCurrency)})`
+				`${formatMoney(item.price, baseCurrency)}\n($${toUsd(item.price).toFixed(2)}) (€${toEur(item.price).toFixed(2)})`
 			]);
 
 			doc.autoTable({
@@ -331,11 +300,8 @@ Coded Clouds retains final operational authority over execution methods while ad
 		doc.text(`(${formatMoney(toEur(totalAmount), 'EUR')})`, 195, finalY + 10, {
 			align: 'right'
 		});
-		doc.text(`(${formatMoney(toAlt(totalAmount), altCurrency)})`, 195, finalY + 15, {
-			align: 'right'
-		});
 
-		finalY += 25;
+		finalY += 20;
 
 		if (importantNotes.trim()) {
 			if (finalY > 240) {
@@ -394,7 +360,7 @@ Coded Clouds retains final operational authority over execution methods while ad
 		currentY += 4;
 		doc.text('IBAN: PK03SCBL0000001703329601', col1X, currentY);
 		currentY += 4;
-		doc.text('Currency: PKR / USD / Riyal / Euro', col1X, currentY);
+		doc.text('Currency: USD / Riyal / Euro', col1X, currentY);
 
 		currentY = finalY;
 		doc.setFont('helvetica', 'bold');
@@ -405,7 +371,7 @@ Coded Clouds retains final operational authority over execution methods while ad
 		currentY += 4;
 		doc.text('IBAN: SA1378000000001252725888', col2X, currentY);
 		currentY += 4;
-		doc.text('Currency: PKR / USD / Riyal / Euro', col2X, currentY);
+		doc.text('Currency: USD / Riyal / Euro', col2X, currentY);
 
 		currentY = finalY + 25;
 		doc.setFont('helvetica', 'bold');
@@ -558,16 +524,13 @@ Coded Clouds retains final operational authority over execution methods while ad
 				</div>
 				<div>
 					<label for="base-currency" class="mb-1 block text-xs font-bold text-gray-500">Base Currency</label>
-					<select
+					<input
 						id="base-currency"
-						bind:value={baseCurrency}
-						class="w-full rounded border p-2 outline-none transition focus:ring-2 focus:ring-blue-500"
-						onchange={(event) =>
-							updateCurrencyDefaults((event.currentTarget as HTMLSelectElement).value as CurrencyCode)}
-					>
-						<option value="PKR">PKR - Pakistani Rupee</option>
-						<option value="SAR">SAR - Saudi Riyal</option>
-					</select>
+						type="text"
+						value="SAR - Saudi Riyal"
+						class="w-full rounded border bg-gray-100 p-2 text-gray-500 outline-none"
+						disabled
+					/>
 				</div>
 				<div>
 					<label for="usd-rate" class="mb-1 block text-xs font-bold text-gray-500">USD Rate ({baseCurrency})</label>
@@ -585,17 +548,6 @@ Coded Clouds retains final operational authority over execution methods while ad
 						id="eur-rate"
 						type="number"
 						bind:value={rateEur}
-						class="w-full rounded border p-2 outline-none transition focus:ring-2 focus:ring-blue-500"
-						oninput={schedulePreview}
-					/>
-				</div>
-				<div>
-					<label for="sar-rate" class="mb-1 block text-xs font-bold text-gray-500">PKR per SAR</label>
-					<input
-						id="sar-rate"
-						type="number"
-						step="0.01"
-						bind:value={sarPkrRate}
 						class="w-full rounded border p-2 outline-none transition focus:ring-2 focus:ring-blue-500"
 						oninput={schedulePreview}
 					/>
