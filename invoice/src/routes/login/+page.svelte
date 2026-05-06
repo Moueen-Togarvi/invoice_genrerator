@@ -1,6 +1,9 @@
 <svelte:options runes={false} />
 
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { pushToast } from '$lib/toast-store';
+
 	export let data: {
 		isConfigured: boolean;
 	};
@@ -19,6 +22,30 @@
 
 	$: if (form?.username !== undefined && form.username !== username) {
 		username = form.username;
+	}
+
+	let lastToastKey = '';
+
+	$: {
+		if (browser) {
+			const nextToastKey = form?.invalidCredentials
+				? `invalid:${form.username ?? ''}`
+				: form?.misconfigured
+					? 'misconfigured'
+					: '';
+
+			if (nextToastKey && nextToastKey !== lastToastKey) {
+				lastToastKey = nextToastKey;
+
+				pushToast({
+					type: 'error',
+					title: form?.misconfigured ? 'Configuration missing' : 'Login failed',
+					message: form?.misconfigured
+						? 'Set the admin environment variables before signing in.'
+						: 'Incorrect username or password.'
+				});
+			}
+		}
 	}
 </script>
 
@@ -43,12 +70,6 @@
 			<div class="mb-6 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-800">
 				Set <code>ADMIN_USERNAME</code>, <code>ADMIN_PASSWORD</code>, and <code>AUTH_SECRET</code>
 				in your environment before signing in.
-			</div>
-		{/if}
-
-		{#if form?.invalidCredentials}
-			<div class="mb-6 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm leading-6 text-rose-700">
-				Incorrect username or password.
 			</div>
 		{/if}
 

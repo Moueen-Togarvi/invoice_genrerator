@@ -6,6 +6,7 @@ import {
 	SESSION_COOKIE_NAME,
 	validateAdminCredentials
 } from '$lib/server/auth';
+import { setFlashToast } from '$lib/server/flash';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -41,6 +42,15 @@ export const actions: Actions = {
 			secure: url.protocol === 'https:',
 			maxAge: 60 * 60 * 12
 		});
+		setFlashToast(
+			cookies,
+			{
+				type: 'success',
+				title: 'Login successful',
+				message: 'Welcome back. You are now signed in as admin.'
+			},
+			url.protocol === 'https:'
+		);
 
 		throw redirect(303, '/');
 	}

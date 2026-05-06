@@ -2,6 +2,7 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { pushToast } from '$lib/toast-store';
 
 	type CurrencyCode = 'SAR';
 	type ItemType = 'onetime' | 'monthly';
@@ -203,11 +204,21 @@ Coded Clouds retains final operational authority over execution methods while ad
 	function addNewItem() {
 		items = [...items, { name: '', price: 0, type: 'onetime' }];
 		schedulePreview();
+		pushToast({
+			type: 'success',
+			title: 'Item created',
+			message: 'A new service item has been added to the invoice.'
+		});
 	}
 
 	function deleteItem(index: number) {
 		items = items.filter((_, itemIndex) => itemIndex !== index);
 		schedulePreview();
+		pushToast({
+			type: 'error',
+			title: 'Item deleted',
+			message: `Service item ${index + 1} was removed from the invoice.`
+		});
 	}
 
 	async function generatePDFBlobUrl() {

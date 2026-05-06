@@ -6,7 +6,9 @@ declare global {
 		interface Locals {
 			isAdmin: boolean;
 		}
-		// interface PageData {}
+		interface PageData {
+			flash?: import('$lib/toast').Toast | null;
+		}
 		// interface PageState {}
 		// interface Platform {}
 	}
