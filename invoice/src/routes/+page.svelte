@@ -478,11 +478,6 @@ Coded Clouds retains final operational authority over execution methods while ad
 
 <svelte:head>
 	<title>Coded Clouds Invoice Tool v2</title>
-	<script src="https://cdn.tailwindcss.com"></script>
-	<link
-		rel="stylesheet"
-		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-	/>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-100 font-sans md:flex md:flex-row overflow-hidden">
@@ -492,8 +487,16 @@ Coded Clouds retains final operational authority over execution methods while ad
 				<h1 class="text-3xl font-bold text-blue-800">Invoice Generator</h1>
 				<p class="text-sm text-gray-500">Coded Clouds Internal Tool</p>
 			</div>
-			<div class="text-right">
+			<div class="flex items-center gap-3 text-right">
 				<span class="rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">v2.0</span>
+				<form method="POST" action="/logout">
+					<button
+						type="submit"
+						class="rounded border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:border-gray-400 hover:text-gray-900"
+					>
+						Log out
+					</button>
+				</form>
 			</div>
 		</div>
 
@@ -647,9 +650,3 @@ Coded Clouds retains final operational authority over execution methods while ad
 		{/if}
 	</div>
 </div>
-
-<style>
-	:global(body) {
-		margin: 0;
-	}
-</style>

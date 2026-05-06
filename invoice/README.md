@@ -29,6 +29,16 @@ npm run dev
 npm run dev -- --open
 ```
 
+## Admin authentication
+
+This app now requires an admin login before the invoice screen is available.
+
+1. Copy `.env.example` to `.env`
+2. Set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `AUTH_SECRET`
+3. Start the app with `npm run dev`
+
+The session is stored in an HTTP-only cookie, and all app routes except `/login` are protected.
+
 ## Building
 
 To create a production version of your app:
